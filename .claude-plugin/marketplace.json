@@ -1,0 +1,15 @@
+{
+  "name": "claude-mods",
+  "description": "Claude Code mods (function-hook plugins) by youllook — small guards and panes that make Claude Code nicer on Windows and beyond",
+  "owner": {
+    "name": "youllook"
+  },
+  "plugins": [
+    {
+      "name": "shell-guard",
+      "source": "./plugins/shell-guard",
+      "description": "Windows shell guard: fixes backslash drive paths in Bash, blocks quote-eating node -e / heredoc patterns, and catches PowerShell/Bash syntax sent to the wrong shell",
+      "category": "shell"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "shell-guard",
+  "version": "0.1.0",
+  "description": "Windows shell guard: fixes backslash drive paths in Bash, blocks quote-eating node -e / heredoc patterns, and catches PowerShell/Bash syntax sent to the wrong shell",
+  "author": { "name": "youllook" },
+  "license": "MIT",
+  "keywords": ["windows", "bash", "powershell", "git-bash", "guard", "mod"]
+}
