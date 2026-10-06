@@ -10,6 +10,12 @@
       "source": "./plugins/shell-guard",
       "description": "Windows shell guard: fixes backslash drive paths in Bash, blocks quote-eating node -e / heredoc patterns, and catches PowerShell/Bash syntax sent to the wrong shell",
       "category": "shell"
+    },
+    {
+      "name": "token-weather-cache",
+      "source": "./plugins/token-weather-cache",
+      "description": "Context-window weather band above the prompt, plus a prompt-cache countdown with expiry toasts (modified from Anthropic's token-weather example)",
+      "category": "usage"
     }
   ]
 }

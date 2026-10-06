@@ -20,6 +20,11 @@ claude plugin install <mod 名稱>@claude-mods
 |---|---|---|
 | [shell-guard](plugins/shell-guard) | Windows shell 防呆：Bash 反斜線路徑自動修正；擋下會被 shell 吃掉的 `node -e` 引號和 heredoc；擋下送錯 shell 的 PowerShell / Bash 語法 | 只呼叫 toast |
 
+### 📊 用量
+| Mod | 說明 | 能碰到什麼 |
+|---|---|---|
+| [token-weather-cache](plugins/token-weather-cache) | 提示框上方的 context 用量天氣列＋prompt cache 倒數（綠→黃→紅，剩 5 分／1 分跳 toast）。改自 Anthropic 官方範例 token-weather，Apache-2.0 | 只讀用量、畫一行 UI、呼叫 toast |
+
 更多分類陸續加入。
 
 ## ⚠️ 安全提醒
@@ -32,4 +37,4 @@ claude plugin validate plugins/<mod 名稱>
 
 ## 授權
 
-[MIT](LICENSE)
+[MIT](LICENSE)。個別 mod 若有自己的 LICENSE（例如 token-weather-cache 為 Apache-2.0），以該檔為準。
