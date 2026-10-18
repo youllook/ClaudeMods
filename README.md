@@ -23,7 +23,7 @@ claude plugin install <mod 名稱>@claude-mods
 ### 📊 用量
 | Mod | 說明 | 能碰到什麼 |
 |---|---|---|
-| [token-weather-cache](plugins/token-weather-cache) | 提示框上方的 context 用量＋prompt cache 倒數＋5h／7d 額度：桌面版四個圓環、終端機一行符號（剩 5 分／1 分跳 toast）。改自 Anthropic 官方範例 token-weather，Apache-2.0 | 只讀用量、畫一行 UI（桌面版 SVG）、呼叫 toast |
+| [token-weather-cache](plugins/token-weather-cache) | 提示框上方的 context 用量＋prompt cache 倒數＋5h／7d 額度：桌面版四個圓環、終端機一行符號（剩 5 分／1 分跳 toast）。改自 Anthropic 官方範例 token-weather，Apache-2.0 | 只讀用量、畫一行 UI（桌面版 SVG）、呼叫 toast、`$.store` 記住倒數 |
 
 更多分類陸續加入。
 

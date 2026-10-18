@@ -12,9 +12,9 @@
 
 | 圓環 | 中間 | 旁邊 |
 |---|---|---|
-| ctx | 用量 %，顏色跟天氣（☀ ☁ ☂ ☇ ↯） | 天氣圖示、`68k/200k` |
+| ctx | 用量 %，顏色跟天氣（☀ ☁ ☂ ☇ ↯） | `68k/200k` |
 | cache | 剩餘時間，**圓環隨倒數排空** | TTL（`1h 快取`）；過期顯示「過期」和要重寫的 token 數 |
-| 5h ／ 7d | 方案額度已用 %（75% 起黃、90% 起紅） | 多久後重置。沒有訂閱額度就不畫 |
+| 5h ／ 7d | 方案額度已用 %（75% 起黃、90% 起紅） | `reset 2h13m`：多久後重置。沒有訂閱額度就不畫 |
 
 **終端機**：一行填充符號（○ ◔ ◑ ◕ ●）。
 
@@ -33,6 +33,7 @@
 - 剩 **5 分鐘**和 **1 分鐘**時各跳一次 toast：送任何訊息就能讓快取續命。
 - 計時器只在倒數文字要變、或該跳 toast 時才醒來，不是每秒跑。
 - 只看主對話的請求，subagent 不算（它們有自己的快取）。
+- **重開 app 或 mod 重新載入後接著倒數**：每個 session 最後一次快取時間、帳號最後一次的 5h／7d 額度存在 mod 自己的儲存檔（`$.store`），重開後不必等下一則訊息。已經過了的 toast 時間點不會重跳；已重置的額度視窗不會顯示舊數字。
 
 ### TTL 怎麼決定（先符合者優先）
 
@@ -42,10 +43,10 @@
 
 ```text
 hooks: session.start, session.end, turn.step, turn.complete, ui.render{component=AbovePrompt}
-calls: $.clock.after, $.clock.now, $.env.get, $.session.usage, $.settings.read, $.ui.invalidate, $.ui.resolve, $.ui.toast
+calls: $.clock.after, $.clock.now, $.env.get, $.session.id, $.session.usage, $.settings.read, $.store.get, $.store.set, $.ui.invalidate, $.ui.resolve, $.ui.toast
 ```
 
-只讀用量和設定、畫一行 UI、跳 toast。**不連網、不寫檔、不送模型請求**（L0）。
+只讀用量和設定、畫一行 UI、跳 toast，並用 `$.store` 記住快取時間與額度（Claude Code 設定資料夾下 mod 自己的一個 JSON 檔，只存時間戳、token 數與百分比）。**不連網、不執行程式、不送模型請求**。
 
 ## 安裝
 

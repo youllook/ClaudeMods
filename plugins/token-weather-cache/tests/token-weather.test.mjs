@@ -8,6 +8,8 @@ register((name, a, b) => { hooks[name] = b ?? a; });
 let now = 1_000_000;
 let pending = null;
 let remote = false;
+let planWindows = [{ kind: "five_hour", percentUsed: 20 }, { kind: "seven_day", percentUsed: 80 }];
+const stored = {};
 const toasts = [];
 const $ = {
   clock: {
@@ -16,7 +18,8 @@ const $ = {
   },
   env: { get: async () => null },
   settings: { read: async () => ({}) },
-  session: { usage: async () => ({ context: { tokens: 68000, window: 200000, percent: 34 }, rateLimits: [{ kind: "five_hour", percentUsed: 20 }, { kind: "seven_day", percentUsed: 80 }] }) },
+  session: { id: async () => "s1", usage: async () => ({ context: { tokens: 68000, window: 200000, percent: 34 }, rateLimits: planWindows }) },
+  store: { get: async (k) => stored[k], set: async (k, v) => { stored[k] = JSON.parse(JSON.stringify(v)); } },
   ui: { invalidate() {}, toast: (t) => toasts.push({ at: now - 1_000_000, t }), resolve: () => ({ Box: (p) => p, Text: (p) => p, ...(remote ? { Svg: (p) => p } : {}) }) },
 };
 const parts = () => hooks["ui.render"]($, {}, () => null).children;
@@ -56,6 +59,12 @@ assert.equal(svg.width, 4 * 118);
 assert.match(svg.alt, /cache 0:30 left of 1h/);
 assert.match(svg.source, /^<svg [^>]*>.*>0:30<\/text>.*<\/svg>$/);
 remote = false;
+
+// A restart: module state is lost, the next response has not come yet.
+planWindows = [];
+await hooks["session.start"]($, {}, async () => {});
+assert.equal(cache().children, "○ cache 0:30", "countdown resumes from the store");
+assert.equal(parts().slice(-1)[0].children, "◕ 7d 80%", "plan windows come back from the store");
 
 c = await at(3601);
 assert.match(c.children, /^○ cache expired: next message rewrites 62\.5k$/);

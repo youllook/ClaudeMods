@@ -63,6 +63,7 @@ export function register(on) {
     lastCache = null;
     await decideTtl($);
     await takeReading($);
+    await restore($);
     return result;
   });
 
@@ -89,6 +90,7 @@ export function register(on) {
         nowMs = startedAt;
         toastLevel = Infinity;
         schedule($, 0);
+        await saveCache($);
       }
     }
     return r;
@@ -127,13 +129,55 @@ async function takeReading($) {
     }
     if (rateLimits?.length) {
       limits = rateLimits.filter((w) => w.kind === "five_hour" || w.kind === "seven_day");
+      // Account-wide, so any session may show the last known windows until its first response.
+      await $.store.set("limits", limits).catch(() => {});
     }
-    if (ttlByAccount) {
-      ttl = accountTtl(rateLimits ?? []);
+    // No windows before the first response: keep the TTL the restored windows gave.
+    if (ttlByAccount && rateLimits?.length) {
+      ttl = accountTtl(rateLimits);
     }
     $.ui.invalidate("ui.render");
   } catch {
     // No reading this turn; the band keeps the last one.
+  }
+}
+
+// The countdown and plan windows live in module variables, which a restart or a
+// reload loses: keep the last cache entry per session, and the account's last
+// windows, in $.store, so a resumed session counts on at once.
+async function saveCache($) {
+  try {
+    const id = await $.session.id();
+    const all = (await $.store.get("cache")) ?? {};
+    const cutoff = lastCache.startedAt - TTL_MS["1h"];
+    const kept = Object.fromEntries(Object.entries(all).filter(([, c]) => c.startedAt > cutoff));
+    await $.store.set("cache", { ...kept, [id]: lastCache });
+  } catch {
+    // The countdown still runs; only a restart will lose it.
+  }
+}
+
+async function restore($) {
+  try {
+    nowMs = await $.clock.now();
+    if (!limits.length) {
+      const saved = (await $.store.get("limits")) ?? [];
+      limits = saved.filter((w) => !w.resetsAt || Date.parse(w.resetsAt) > nowMs);
+    }
+    if (ttlByAccount && limits.length) {
+      ttl = accountTtl(limits);
+    }
+    const saved = ((await $.store.get("cache")) ?? {})[await $.session.id()];
+    if (saved && saved.startedAt + TTL_MS[ttl] > nowMs - TTL_MS[ttl]) {
+      lastCache = saved;
+      // Marks already passed count as shown, so a restart raises no stale toast.
+      const left = leftMs(nowMs);
+      toastLevel = Math.min(Infinity, ...TOAST_AT.filter((m) => m * 1000 >= left));
+      schedule($, 0);
+    }
+    $.ui.invalidate("ui.render");
+  } catch {
+    // Nothing kept: the band waits for the next request, as before.
   }
 }
 
@@ -243,7 +287,7 @@ const RING_H = 44;
 
 function rings(Box, Svg, now) {
   const f = forecastFor(reading.percent);
-  const items = [{ fill: reading.percent / 100, color: HEX[f.color], center: `${reading.percent}%`, label: `${f.icon} ctx`, sub: `${short(reading.tokens)}/${short(reading.window)}` }];
+  const items = [{ fill: reading.percent / 100, color: HEX[f.color], center: `${reading.percent}%`, label: "ctx", sub: `${short(reading.tokens)}/${short(reading.window)}` }];
   const alt = [`context ${reading.percent}% (${short(reading.tokens)} of ${short(reading.window)})`];
   if (lastCache) {
     const left = leftMs(now);
@@ -262,7 +306,7 @@ function rings(Box, Svg, now) {
       color: HEX[limitColor(w.percentUsed)],
       center: `${Math.round(w.percentUsed)}%`,
       label: LIMIT_LABEL[w.kind],
-      sub: reset > 0 ? `${span(reset)}後重置` : "",
+      sub: reset > 0 ? `reset ${span(reset)}` : "",
     });
     alt.push(`${LIMIT_LABEL[w.kind]} plan ${Math.round(w.percentUsed)}% used`);
   }
