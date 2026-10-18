@@ -1,7 +1,7 @@
 {
   "name": "token-weather-cache",
-  "version": "0.1.0",
-  "description": "Context-window weather band above the prompt, plus a prompt-cache countdown with expiry toasts. Modified from Anthropic's token-weather example.",
+  "version": "0.2.0",
+  "description": "Context, prompt-cache countdown and plan usage above the prompt: four SVG rings on desktop, fill glyphs in the terminal, with expiry toasts. Modified from Anthropic's token-weather example.",
   "author": { "name": "youllook" },
   "license": "Apache-2.0",
   "keywords": ["context", "prompt-cache", "countdown", "usage", "mod"]

@@ -14,7 +14,7 @@
     {
       "name": "token-weather-cache",
       "source": "./plugins/token-weather-cache",
-      "description": "Context-window weather band above the prompt, plus a prompt-cache countdown with expiry toasts (modified from Anthropic's token-weather example)",
+      "description": "Context, prompt-cache countdown and plan usage above the prompt: SVG rings on desktop, fill glyphs in the terminal (modified from Anthropic's token-weather example)",
       "category": "usage"
     }
   ]
