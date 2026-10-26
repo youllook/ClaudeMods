@@ -9,6 +9,7 @@ import type { Register } from 'claude-code'
 //     4. deny     PowerShell syntax ($env:, Get-ChildItem, 2>$null, ...)
 //   PowerShell tool
 //     5. deny     Bash syntax (export X=, /dev/null, if [ ... ]; then, ...)
+//     6. deny     -match / -replace / -split with a "double-quoted" pattern holding \
 //
 // Escape hatch: a command containing `shell-guard: allow` (e.g. as a trailing
 // comment) passes untouched, for the rare case the pattern is intended.
@@ -128,6 +129,24 @@ export function checkBashInPs(command: string): string | null {
   return null
 }
 
+// ---------- 6. PowerShell regex in double quotes ----------
+
+// -match, -cmatch, -inotmatch, -replace, -csplit, ... followed by a "..." pattern.
+// Inside PowerShell double quotes ` escapes and "" is a literal quote.
+const PS_REGEX_DQ = /-[ci]?(?:not)?(match|replace|split)\s+"((?:[^"`]|`.|"")*)"/gi
+
+export function checkPsRegex(command: string): string | null {
+  for (const m of command.matchAll(PS_REGEX_DQ)) {
+    if (m[2].includes('\\')) {
+      return (
+        `shell-guard: -${m[1]} 的 regex 用雙引號又含反斜線（"${m[2]}"），跳脫層數很容易算錯，$ 還會被展開。` +
+        `請改用單引號 '...'（內容原樣交給 regex），或用 [regex]::Escape('字面字串') 組 pattern。`
+      )
+    }
+  }
+  return null
+}
+
 // ---------- hooks ----------
 
 export const register: Register = on => {
@@ -150,7 +169,7 @@ export const register: Register = on => {
 
   on('tool.call', { tool: 'PowerShell' }, ($, e, next) => {
     if (ALLOW.test(e.command)) return next(e)
-    const reason = checkBashInPs(e.command)
+    const reason = checkBashInPs(e.command) ?? checkPsRegex(e.command)
     if (reason) {
       $.ui.toast('🛡 shell-guard 擋下一個會出錯的 PowerShell 指令')
       return { deny: reason }

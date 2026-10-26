@@ -1,4 +1,4 @@
-import { fixPaths, checkInline, checkHeredoc, checkPsInBash, checkBashInPs } from '../hooks/register.ts'
+import { fixPaths, checkInline, checkHeredoc, checkPsInBash, checkBashInPs, checkPsRegex } from '../hooks/register.ts'
 
 let fail = 0
 const eq = (name: string, got: unknown, want: unknown) => {
@@ -50,5 +50,20 @@ blocks('normal ps ok', checkBashInPs('Get-ChildItem -Recurse | Select-Object -Fi
 blocks('ps env ok', checkBashInPs("$env:FOO = 'bar'; npm run dev"), false)
 blocks('bash -c delegation ok', checkBashInPs('bash -c "ls -la"'), false)
 blocks('quoted text ok', checkBashInPs('git commit -m "fix /dev/null handling"'), false)
+
+// 6. PowerShell regex in double quotes
+blocks('-match dq backslash', checkPsRegex('$_.CommandLine -match "\\.codex\\\\"'), true)
+blocks('-replace dq backslash', checkPsRegex('$s -replace "\\s+", " "'), true)
+blocks('-split dq backslash', checkPsRegex('$line -split "\\|"'), true)
+blocks('-notmatch dq backslash', checkPsRegex('$x -notmatch "\\d"'), true)
+blocks('-cmatch dq backslash', checkPsRegex('$x -cmatch "^\\w+$"'), true)
+blocks('-IMATCH case-insensitive op', checkPsRegex('$x -IMATCH "a\\b"'), true)
+blocks('backtick-escaped quote inside', checkPsRegex('$x -match "say `"hi`" \\d"'), true)
+blocks('-match sq backslash ok', checkPsRegex("$x -match '\\.codex\\\\'"), false)
+blocks('-match dq no backslash ok', checkPsRegex('$x -match "codex"'), false)
+blocks('-replace dq replacement only ok', checkPsRegex("$s -replace 'a', \"C:\\tmp\""), false)
+blocks('regex Escape ok', checkPsRegex("$x -match [regex]::Escape('C:\\tmp')"), false)
+blocks('plain path arg ok', checkPsRegex('Get-ChildItem "C:\\Users\\user"'), false)
+blocks('-Match param name not op ok', checkPsRegex('Select-String -Pattern "x" -Path "C:\\a.txt"'), false)
 
 console.log(fail ? `${fail} failed` : 'all passed')

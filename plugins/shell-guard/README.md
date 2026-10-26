@@ -15,6 +15,7 @@
 | `cat > a.sh <<EOF` ＋ `$HOME` | 寫進檔案的是展開後的值，不是原本的 `$HOME` |
 | Bash 裡寫 `echo $env:PATH` | 印出 `:PATH` |
 | PowerShell 裡寫 `export FOO=bar` | `export is not recognized` |
+| PowerShell 裡寫 `-match "\.codex\\"` | 雙引號裡的反斜線層數很容易算錯，`$` 還會被展開，regex 靜默比對失敗 |
 
 ## 它做什麼
 
@@ -25,6 +26,7 @@
 | 3 | Bash | 沒加引號的 heredoc（`<<EOF`），內容又有 `$` 或反引號 | **擋下**，請模型改用 `<<'EOF'` |
 | 4 | Bash | PowerShell 語法（`$env:`、`Get-ChildItem`、`2>$null`…） | **擋下**，請模型改用 PowerShell 工具 |
 | 5 | PowerShell | Bash 語法（`export X=`、`/dev/null`、`rm -rf`、`if [ ]; then`…） | **擋下**，請模型改用 Bash 工具 |
+| 6 | PowerShell | `-match` / `-replace` / `-split`（含 `-notmatch`、`-cmatch` 等變體）的 pattern 用雙引號又含反斜線 | **擋下**，請模型改用單引號，或用 `[regex]::Escape()` |
 
 - 擋下時，原因會回傳給模型，模型看到就會自己改寫重試。畫面上也會跳一個 🛡 通知。
 - **不會誤擋**：單引號和雙引號裡的文字（例如 commit 訊息提到 `/dev/null`）、heredoc 的內容、明確轉交給另一個 shell 的指令（`powershell -Command …`、`bash -c …`）。
@@ -55,7 +57,7 @@ calls: $.ui.toast
 ```bash
 node --experimental-strip-types --no-warnings tests/rules.test.mts
 ```
-34 個案例，涵蓋上表 5 條規則，以及「不該誤擋」的情況。
+46 個案例，涵蓋上表 6 條規則，以及「不該誤擋」的情況。
 
 ## 授權
 

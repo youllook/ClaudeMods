@@ -18,7 +18,7 @@ claude plugin install <mod 名稱>@claude-mods
 ### 🐚 Shell
 | Mod | 說明 | 能碰到什麼 |
 |---|---|---|
-| [shell-guard](plugins/shell-guard) | Windows shell 防呆：Bash 反斜線路徑自動修正；擋下會被 shell 吃掉的 `node -e` 引號和 heredoc；擋下送錯 shell 的 PowerShell / Bash 語法 | 只呼叫 toast |
+| [shell-guard](plugins/shell-guard) | Windows shell 防呆：Bash 反斜線路徑自動修正；擋下會被 shell 吃掉的 `node -e` 引號和 heredoc；擋下送錯 shell 的 PowerShell / Bash 語法；擋下雙引號裡含反斜線的 PowerShell regex | 只呼叫 toast |
 
 ### 📊 用量
 | Mod | 說明 | 能碰到什麼 |
